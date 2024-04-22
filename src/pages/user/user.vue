@@ -1,5 +1,9 @@
 <template>
-  <view class="userLayout page">
+  <view class="userLayout page" :style="{ height: `${isH5}vh` }">
+    <!-- 导航栏 -->
+    <view class="nav">
+      <my-nav title="个人中心" :isSearch="false" />
+    </view>
     <view class="info">
       <view class="avatar">
         <image class="image" src="../../static/g4925.jpg" mode="scaleToFill" />
@@ -35,7 +39,17 @@
 <script setup lang="ts">
 import MyListItem from "@/components/MyListItem.vue";
 import { iconsTop, iconsBottom, type Icons } from "./index";
-
+import { computed } from "vue";
+//如果是h5就不给导航栏了
+const isH5 = computed(() => {
+  const environment: any = uni.getSystemInfoSync();
+  if (environment.ua) {
+    //h5
+    return ((environment.screenHeight - 50) / environment.screenHeight)*100
+  } else {
+    return 100;
+  }
+});
 const iconClick = (item: Icons) => {
   //下载与评分
   if (item.isRight) {

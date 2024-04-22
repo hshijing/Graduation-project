@@ -5,7 +5,7 @@
       <text class="title">公告</text>
     </view>
     <view class="center">
-      <my-swiper class="swiper"  :isTransverse="false" :announcementData="announcementData"/>
+      <my-swiper  class="swiper"  :isTransverse="false" :announcementData="announcementData"/>
     </view>
     <view class="right">></view>
   </view>
@@ -31,6 +31,7 @@ const announcementData=[
     text:'耳机how i七二九七我饿环球网joie后切后i去',
   }
 ]
+
 </script>
 
 <style scoped lang="scss">
@@ -56,6 +57,7 @@ const announcementData=[
   }
   .center{
     flex: 1;
+    height: initial;
   }
   .right{
     width: 70rpx;

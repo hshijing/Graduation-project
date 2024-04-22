@@ -72,7 +72,7 @@ const click = (row: string) => {
     color: #aaa;
   }
 }
-.row:hover {
-  background-color: #f0eeee;
+.row:active {
+  background-color: #eeeeee;
 }
 </style>

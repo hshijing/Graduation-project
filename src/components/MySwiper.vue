@@ -1,12 +1,13 @@
 <template>
-  <view v-if="isTransverse">
-    <swiper class="swiperBody" indicator-dots autoplay circular>
-      <swiper-item v-for="item in 3" :key="item">
-        <image
-          class="image"
-          :src="`../static/image/banner${item}.jpg`"
-          mode="scaleToFill"
-        />
+  <view class="box" v-if="isTransverse">
+    <swiper
+      :class="['swiperBody', { isHome: isHomeVue }]"
+      :indicator-dots="indicator"
+      :autoplay="autoplay"
+      :circular="circular"
+    >
+      <swiper-item v-for="item in imgUrlList" :key="item" @click="jump(item)">
+        <image class="image" :src="item" mode="aspectFill" />
       </swiper-item>
     </swiper>
   </view>
@@ -20,22 +21,65 @@
       :duration="300"
     >
       <swiper-item v-for="item in announcementData" :key="item.id">
-        {{ item.text }}
+        <navigator
+          url="/pages/AnnouncementDetails/detail"
+          open-type="navigate"
+          hover-class="navigator-hover"
+        >
+          {{ item.text }}
+        </navigator>
       </swiper-item>
     </swiper>
   </view>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+const emit = defineEmits(["swiperItemClick"]);
+const imgUrlList = computed(() => {
+  const environment: any = uni.getSystemInfoSync();
+  if (!environment.ua) {
+    return [
+      "../static/image/banner1.jpg",
+      "../static/image/banner2.jpg",
+      "../static/image/banner3.jpg",
+    ];
+  } else {
+    return [
+      "/src/static/image/banner1.jpg",
+      "/src/static/image/banner2.jpg",
+      "/src/static/image/banner3.jpg",
+    ];
+  }
+});
+
+const jump = (item) => {
+  emit("swiperItemClick", item);
+};
 interface AnnouncementData {
   id: number;
   text: string;
 }
-
 defineProps({
   isTransverse: {
     type: Boolean,
     required: true,
+  },
+  indicator: {
+    type: Boolean,
+    default: true,
+  },
+  autoplay: {
+    type: Boolean,
+    default: true,
+  },
+  circular: {
+    type: Boolean,
+    default: true,
+  },
+  isHomeVue: {
+    type: Boolean,
+    default: true,
   },
   // 公告数据
   announcementData: {
@@ -45,19 +89,27 @@ defineProps({
 </script>
 
 <style scoped lang="scss">
-.swiperBody {
+.box {
   width: 100%;
-  padding: 0 30rpx;
-  &-item {
-    width: 100%;
-    height: 100%;
+  height: 100%;
+  .isHome {
+    padding: 10rpx 30rpx;
   }
-  .image {
-    width: 100%;
-    height: 100%;
-    border-radius: 10rpx;
+  .swiperBody {
+    width: inherit;
+    height: inherit;
+    &-item {
+      width: 100%;
+      height: 100%;
+    }
+    .image {
+      width: 100%;
+      height: 100%;
+      border-radius: 10rpx;
+    }
   }
 }
+
 .announcementBody {
   width: 100%;
   height: 80rpx;

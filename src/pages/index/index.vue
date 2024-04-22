@@ -1,5 +1,9 @@
 <template>
   <view class="homeLayout page">
+    <!-- 导航栏 -->
+    <view class="nav">
+      <my-nav :title="'首页'" />
+    </view>
     <!-- 轮播图 -->
     <view class="swiper">
       <my-swiper :isTransverse="true" />
@@ -24,11 +28,13 @@
       </My-title>
       <view class="content">
         <scroll-view scroll-x>
-          <view class="box" v-for="item in 10" :key="item">
-            <image
-              src="../../static/image/preview1.jpg"
-              mode="scaleToFill"
-            />
+          <view
+            class="box"
+            v-for="item in 10"
+            :key="item"
+            @click="imgClickToPreview(item)"
+          >
+            <image src="../../static/image/preview1.jpg" mode="scaleToFill" />
           </view>
         </scroll-view>
       </view>
@@ -39,11 +45,10 @@
         <template #name>专题精选</template>
         <template #custom>more+</template>
       </My-title>
-			<view class="content">
-				<MyTheme v-for="item in 8" :key="item">
-				</MyTheme>
-				<MyTheme  :isMore="true"/>
-			</view>
+      <view class="content">
+        <MyTheme v-for="item in 8" :key="item"> </MyTheme>
+        <MyTheme :isMore="true" />
+      </view>
     </view>
   </view>
 </template>
@@ -51,15 +56,21 @@
 <script setup lang="ts">
 import MySwiper from "@/components/MySwiper.vue";
 import MyAnnouncement from "@/components/MyAnnouncement.vue";
-import MyTheme from '@/components/MyTheme.vue'
-</script>
+import MyTheme from "@/components/MyTheme.vue";
 
+//点击图片跳转预览
+const imgClickToPreview = (row: any) => {
+  uni.navigateTo({
+    url: `/pages/perview/perview`,
+  });
+};
+</script>
 <style lang="scss">
 .homeLayout {
   width: 750rpx;
   padding: 30rpx 0;
   .swiper {
-    width: 100%;
+    width: inherit;
     height: 340rpx;
   }
   .select {
@@ -90,15 +101,15 @@ import MyTheme from '@/components/MyTheme.vue'
       }
     }
   }
-	.theme{
-		padding-top: 50rpx;
-   .content{
-		margin-top: 30rpx;
-		padding: 0 30rpx;
-		display: grid;
-		gap: 15rpx;
-		grid-template-columns: repeat(3,1fr);
-	 }
-	}
+  .theme {
+    padding-top: 50rpx;
+    .content {
+      margin-top: 30rpx;
+      padding: 0 30rpx;
+      display: grid;
+      gap: 15rpx;
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
 }
 </style>

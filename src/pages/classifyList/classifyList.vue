@@ -4,12 +4,16 @@
       <navigator
         v-for="item in 20"
         :key="item"
-        url="/pages/"
+        url="/pages/perview/perview"
         class="item"
         open-type="navigate"
         hover-class="navigator-hover"
       >
-        <image class="image" src="../../static/image/preview2.jpg" mode="aspectFill" />
+        <image
+          class="image"
+          src="../../static/image/preview2.jpg"
+          mode="aspectFill"
+        />
       </navigator>
     </view>
   </view>

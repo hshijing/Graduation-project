@@ -41,6 +41,25 @@
       "style": {
         "navigationBarTitleText": "classifyList"
       }
+    },
+    {
+      "path": "pages/perview/perview",
+      "style": {
+        "navigationBarTitleText": "perview",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/AnnouncementDetails/AnnouncementDetails",
+      "style": {
+        "navigationBarTitleText": "公告"
+      }
+    },
+    {
+      "path": "pages/AnnouncementDetails/detail",
+      "style": {
+        "navigationBarTitleText": "公告详情"
+      }
     }
   ],
   "globalStyle": {
