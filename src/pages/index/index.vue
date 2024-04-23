@@ -6,7 +6,7 @@
     </view>
     <!-- 轮播图 -->
     <view class="swiper">
-      <my-swiper :isTransverse="true" />
+      <my-swiper :isTransverse="true" :ImgList="swiperImgList" />
     </view>
     <!-- 公告 -->
     <view class="announcement">
@@ -30,11 +30,11 @@
         <scroll-view scroll-x>
           <view
             class="box"
-            v-for="item in 10"
-            :key="item"
+            v-for="item in RandomImgList"
+            :key="item._id"
             @click="imgClickToPreview(item)"
-          >
-            <image src="../../static/image/preview1.jpg" mode="scaleToFill" />
+          > 
+            <image :src="item.smallPicurl" mode="scaleToFill" />
           </view>
         </scroll-view>
       </view>
@@ -46,7 +46,13 @@
         <template #custom>more+</template>
       </My-title>
       <view class="content">
-        <MyTheme v-for="item in 8" :key="item"> </MyTheme>
+        <MyTheme
+          :isMore="false"
+          v-for="item in classifyList"
+          :key="item._id"
+          :classifyItem="item"
+        >
+        </MyTheme>
         <MyTheme :isMore="true" />
       </view>
     </view>
@@ -57,13 +63,57 @@
 import MySwiper from "@/components/MySwiper.vue";
 import MyAnnouncement from "@/components/MyAnnouncement.vue";
 import MyTheme from "@/components/MyTheme.vue";
-
+import { isH5 } from "../../utils/isH5";
+import { ref } from "vue";
+import {
+  getHomeBarImg,
+  getHomeRandomImg,
+  getHomeWallClass,
+  type getHomeBarImgItem,
+  getHomeRandomImgItem,
+  getHomeWallClassItem,
+} from "./index";
+//轮播图
+const swiperImgList = ref([] as getHomeBarImgItem[]);
+//每日推荐图
+const RandomImgList = ref([] as getHomeRandomImgItem[]);
+//分类
+const classifyList = ref([] as getHomeWallClassItem[]);
 //点击图片跳转预览
-const imgClickToPreview = (row: any) => {
+const imgClickToPreview = (row: getHomeRandomImgItem) => {
   uni.navigateTo({
-    url: `/pages/perview/perview`,
+    url: `/pages/perview/perview?isHome=yes`,
+    success: () => {
+      //h5环境uni.$emit需要等$on初始化完毕,牺牲用户体验
+      if (isH5()) {
+        setTimeout(() => {
+          uni.$emit("RandomImgList", row);
+        }, 500);
+      } else {
+        uni.$emit("RandomImgList", row);
+      }
+    },
   });
 };
+//获取轮播图
+const getBarImg = async () => {
+  const res = await getHomeBarImg();
+  swiperImgList.value = res.data.data;
+};
+//获取每日推荐图
+const getRandomImg = async () => {
+  const res = await getHomeRandomImg();
+  RandomImgList.value = res.data.data;
+};
+//获取分类
+const getClassify = async () => {
+  const res = await getHomeWallClass({ select: true });
+  classifyList.value = res.data.data;
+};
+
+getBarImg();
+getRandomImg();
+getClassify();
 </script>
 <style lang="scss">
 .homeLayout {

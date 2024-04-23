@@ -1,11 +1,15 @@
 <template>
   <view class="perview">
     <my-swiper
+      :readImgIndex="readImgIndex"
       :isTransverse="true"
       :autoplay="false"
       :indicator="false"
       :isHomeVue="false"
       @swiperItemClick="maskChange"
+      :ImgList="perviewImg"
+      :current="currIndexImg"
+      @swiperChange="swiperChange"
     ></my-swiper>
     <!-- 遮罩层 -->
     <view class="mask" v-show="mask">
@@ -13,7 +17,9 @@
       <view class="back" @click="back" :style="{ top: `${statusBarHeight}px` }">
         <my-icon type="back" :size="26" color="#000" />
       </view>
-      <view class="count pos">3 / 9</view>
+      <view class="count pos"
+        >{{ currIndexImg + 1 }}/{{ perviewImg.length }}</view
+      >
       <view class="time pos">14:58</view>
       <view class="data pos">
         <uni-dateformat :date="Date.now()" format="M月dd日"></uni-dateformat>
@@ -54,31 +60,41 @@
             <view class="content">
               <view class="item">
                 <text class="label">壁纸ID:</text>
-                <text class="value" selectable>12312312312qwe</text>
+                <text class="value" selectable>{{ currImgInfo._id }}</text>
               </view>
-              <view class="item">
+              <!-- <view class="item">
                 <text class="label">分类:</text>
-                <text class="value class">明星美女</text>
-              </view>
+                <text class="value class">{{ currImgInfo }}</text>
+              </view> -->
               <view class="item">
                 <text class="label">作者:</text>
-                <text class="value">hhhh</text>
+                <text class="value">{{ currImgInfo.nickname }}</text>
               </view>
               <view class="item">
                 <text class="label">评分:</text>
                 <view class="value rateBox">
-                  <uni-rate :readonly="true" :value="2" size="16" />
-                  <text class="cors">5 分</text>
+                  <uni-rate
+                    :readonly="true"
+                    :value="currImgInfo.score"
+                    size="16"
+                  />
+                  <text class="cors">{{ currImgInfo.score }}分</text>
                 </view>
               </view>
               <view class="item">
                 <text class="label">摘要:</text>
-                <text class="value">1231231231</text>
+                <text class="value">{{ currImgInfo.description }}</text>
               </view>
               <view class="item">
                 <text class="label">标签:</text>
                 <view class="value tabs">
-                  <view class="tab" v-for="item in 3" :key="item">标签名</view>
+                  <view
+                    class="tab"
+                    v-for="item in currImgInfo.tabs"
+                    :key="item"
+                  >
+                    {{ item }}
+                  </view>
                 </view>
               </view>
               <view class="copyright">
@@ -133,19 +149,90 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
-import { statusBarHeight } from "../../ts/navStyle";
+import { ref, computed } from "vue";
+import { statusBarHeight } from "../../utils/navStyle";
+import { type ClassifyItem } from "../classifyList/index";
+import { onLoad } from "@dcloudio/uni-app";
+import { isH5 } from "../../utils/isH5";
 const mask = ref(true);
-//返回上一页
-const back = () => uni.navigateBack({ delta: 0 });
+//预览图片列表数据
+const perviewImg = ref([]);
+//当前图片下标
+const currIndexImg = ref(0);
+//当前图片的信息
+const currImgInfo = computed<ClassifyItem>(() => {
+  return perviewImg.value[currIndexImg.value];
+});
+//优化  存储当前图片的左1，当前，右1,每次只拿三张图片
+const readImgIndex = ref([]);
 //壁纸弹窗实例
 const popupBz = ref();
 const popupStar = ref();
 const userStar = ref(5);
-//图片点击隐藏遮罩层
-const maskChange = () => {
-  mask.value = !mask.value;
+//主页预览只能有一个图片
+const indexImg = ref([]);
+onLoad((res) => {
+  //h5环境uni.$on延迟触发，弄了很久还是牺牲用户体验
+  if (res.isHome && isH5()) {
+    uni.$on("RandomImgList", (data) => {
+      indexImg.value.push(data);
+      getPerviewImg(indexImg.value);
+    });
+  } else if (res.isHome) {
+    uni.$on("RandomImgList", (data) => {
+      console.log(data);
+      indexImg.value.push(data);
+      getPerviewImg(indexImg.value);
+    });
+   
+  } else {
+     //分类的图片列表预览
+    const data: ClassifyItem[] = uni.getStorageSync("dataImgList");
+    getPerviewImg(data);
+    //确定当前显示的图片下标
+    currIndexImg.value = data.findIndex(
+      (item: ClassifyItem) => item._id === res.index
+    );
+    //读取图片列表
+    readImgIndexFn();
+  }
+});
+//进来显示预览图片
+const getPerviewImg = (options: ClassifyItem[]) => {
+  options.forEach((item: ClassifyItem) => {
+    const url = item.smallPicurl;
+    const newUrl = url.slice(0, url.lastIndexOf("_"));
+    perviewImg.value.push({
+      ...item,
+      picurl: `${newUrl}.jpg`,
+    });
+  });
 };
+
+//收集预览图片下标 左1,当前,右1
+const readImgIndexFn = () => {
+  readImgIndex.value.push(
+    currIndexImg.value <= 0
+      ? perviewImg.value.length - 1
+      : currIndexImg.value - 1,
+    currIndexImg.value,
+    currIndexImg.value >= perviewImg.value.length ? 0 : currIndexImg.value + 1
+  );
+  //数组过滤
+  readImgIndex.value = readImgIndex.value.filter(
+    (item, index) => readImgIndex.value.indexOf(item) === index
+  );
+};
+//预览图片下标变化
+const swiperChange = (e) => {
+  currIndexImg.value = e.detail.current;
+  readImgIndexFn();
+};
+
+//返回上一页
+const back = () => uni.navigateBack({ delta: 0 });
+//图片点击隐藏遮罩层
+const maskChange = () => (mask.value = !mask.value);
 //点击图标打开弹窗
 const openPopup = () => {
   popupBz.value.open();

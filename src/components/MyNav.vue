@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { statusBarHeight, MenuHeight, NavHeight } from "../ts/navStyle";
+import { statusBarHeight, MenuHeight, NavHeight } from "../utils/navStyle";
 defineProps({
   title: {
     type: String,

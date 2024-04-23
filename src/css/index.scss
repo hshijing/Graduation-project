@@ -6,3 +6,6 @@ swiper {
 .page {
   background: linear-gradient(to right, #beecd8, #f4e2d8);
 }
+.safe {
+  height: env(safe-area-inset-bottom);
+}

@@ -5,9 +5,25 @@
       :indicator-dots="indicator"
       :autoplay="autoplay"
       :circular="circular"
+      :current="current"
+      @change="change"
     >
-      <swiper-item v-for="item in imgUrlList" :key="item" @click="jump(item)">
-        <image class="image" :src="item" mode="aspectFill" />
+      <swiper-item
+        v-for="(item, index) in ImgList"
+        :key="item._id"
+        @click="jump(item)"
+      >
+        <template v-if="readImgIndex.length >= 1">
+          <image
+            v-if="readImgIndex.includes(index)"
+            class="image"
+            :src="item.picurl"
+            mode="aspectFill"
+          />
+        </template>
+        <template v-else>
+          <image class="image" :src="item.picurl" mode="aspectFill" />
+        </template>
       </swiper-item>
     </swiper>
   </view>
@@ -20,46 +36,44 @@
       :interval="1500"
       :duration="300"
     >
-      <swiper-item v-for="item in announcementData" :key="item.id">
-        <navigator
-          url="/pages/AnnouncementDetails/detail"
-          open-type="navigate"
-          hover-class="navigator-hover"
-        >
-          {{ item.text }}
-        </navigator>
+      <swiper-item
+        v-for="item in noticeList"
+        :key="item._id"
+        @click="goToDetail(item)"
+      >
+        {{ item.title }}
       </swiper-item>
     </swiper>
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-const emit = defineEmits(["swiperItemClick"]);
-const imgUrlList = computed(() => {
-  const environment: any = uni.getSystemInfoSync();
-  if (!environment.ua) {
-    return [
-      "../static/image/banner1.jpg",
-      "../static/image/banner2.jpg",
-      "../static/image/banner3.jpg",
-    ];
-  } else {
-    return [
-      "/src/static/image/banner1.jpg",
-      "/src/static/image/banner2.jpg",
-      "/src/static/image/banner3.jpg",
-    ];
-  }
-});
-
+import { type getHomeBarImgItem } from "../pages/index/index";
+import { type NoticeItem } from "./MyAnnouncement.vue";
+import { isH5 } from "../utils/isH5";
+const emit = defineEmits(["swiperItemClick", "swiperChange"]);
 const jump = (item) => {
   emit("swiperItemClick", item);
 };
-interface AnnouncementData {
-  id: number;
-  text: string;
-}
+// 公告跳转
+const goToDetail = (item: NoticeItem) => {
+  uni.navigateTo({
+    url: "/pages/AnnouncementDetails/detail",
+    success: () => {
+      if (isH5()) {
+        //h5第一次进入无法传递数据 因为emit要等on初始化后才触发
+        uni.$on("test", function () {
+          uni.$emit("NoticeItem", item);
+        });
+      } else {
+        uni.$emit("NoticeItem", item);
+      }
+    },
+  });
+};
+const change = (e) => {
+  emit("swiperChange", e);
+};
 defineProps({
   isTransverse: {
     type: Boolean,
@@ -77,13 +91,28 @@ defineProps({
     type: Boolean,
     default: true,
   },
+  //是否首页
   isHomeVue: {
     type: Boolean,
     default: true,
   },
   // 公告数据
-  announcementData: {
-    type: Array as () => AnnouncementData[],
+  noticeList: {
+    type: Array as () => NoticeItem[],
+  },
+  //图片列表
+  ImgList: {
+    type: Array as () => getHomeBarImgItem[],
+  },
+  //是否为分类图片列表内容？
+  readImgIndex: {
+    type: Array,
+    default: [],
+  },
+  //当前图片下标
+  current: {
+    type: Number,
+    default: 0,
   },
 });
 </script>

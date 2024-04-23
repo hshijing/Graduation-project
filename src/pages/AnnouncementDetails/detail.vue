@@ -4,21 +4,36 @@
       <view class="tag">
         <uni-tag :inverted="true" text="置顶" type="error" />
       </view>
-      <view class="font">区域填写标题</view>
+      <view class="font">{{ Detail.title }}</view>
     </view>
     <view class="info">
-      <view class="item">回去我请问请问和</view>
-      <view class="time">
-        <uni-dateformat :date="Date.now()" format="yyyy/MM/dd hh:mm:ss" />
-      </view>
+      <view>
+        <text> 作者: </text>
+        <text class="item">{{ Detail.author }}</text></view
+      >
     </view>
-    <view class="content"> 内容 </view>
-    <view class="count"> 312312 </view>
+    <text :selectable="true" class="content">{{ Detail.content }}</text>
+    <view class="footer">
+      <text>发布时间:</text>
+      <uni-dateformat :date="Detail.create_time" format="yyyy/MM/dd hh:mm:ss" />
+      <my-icon class="icon" type="eye-filled" :size="20" color="#999" />
+      <view> {{ Detail.view_count }} </view>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
+import { type NoticeItem } from "../../components/MyAnnouncement.vue";
+const Detail = ref({} as NoticeItem);
+onLoad(() => {
+  //在要跳转入的页面中
+  uni.$on("NoticeItem", (data: NoticeItem) => {
+    Detail.value = data;
+  });
+  uni.$emit("test");
+});
 </script>
 
 <style scoped lang="scss">
@@ -30,6 +45,7 @@ import { ref, reactive, onMounted } from "vue";
     line-height: 1.6em;
     padding-bottom: 30rpx;
     display: flex;
+    align-items: center;
     .tag {
       transform: scale(0.8);
       transform-origin: left center;
@@ -45,16 +61,29 @@ import { ref, reactive, onMounted } from "vue";
     color: #999;
     font-size: 28rpx;
     .item {
-      padding-right: 20rpx;
-    font-size: 22rpx;
+      padding-right: 200rpx;
+      font-size: 40rpx;
+      color: #000;
     }
   }
   .content {
     padding: 50rpx 0;
   }
-  .count {
+  .footer {
+    margin-top: 100rpx;
+    display: flex;
+    align-items: center;
+    font-size: 26rpx;
     color: #999;
-    font-size: 28rpx;
+    display: flex;
+    align-items: center;
+    .icon {
+      margin-left: 20rpx;
+    }
+    .count {
+      color: #999;
+      font-size: 20rpx;
+    }
   }
 }
 </style>

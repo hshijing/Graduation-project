@@ -1,37 +1,58 @@
 <template>
   <view class="themeItem">
-    <navigator
-      v-if="!isMore"
-      class="box"
-      url="/pages/classifyList/classifyList"
+    <view v-if="!isMore" class="box" @click="goToClassify(classifyItem)">
+      <image
+        class="themeImg"
+        :src="classifyItem.picurl"
+        mode="scaleToFill"
+      />
+      <view class="mask">{{ classifyItem.name }}</view>
+      <view class="tag"> {{ formatDate(classifyItem.updateTime) }}</view>
+    </view>
+
+    <view
+      v-else
+      @click="goToClassifyList"
+      open-type="switchTab"
+      class="box more"
     >
       <image
         class="themeImg"
-        src="../static/image/classify1.jpg"
-        mode="scaleToFill"
-      />
-      <view class="mask">明星美女</view>
-      <view class="tag">3天前更新</view>
-    </navigator>
-    <navigator url="/pages/classify/classify" open-type="switchTab" v-else class="box more">
-      <image
-        class="themeImg"
-        src="../static/image/classify2.jpg"
+        src="../static/image/banner1.jpg"
         mode="scaleToFill"
       />
       <view class="mask">
         <my-icon type="more" :size="30" color="#fff" />
         <view class="text">更多</view>
       </view>
-    </navigator>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
+import { type getHomeWallClassItem } from "../pages/index/index";
+import { formatDate } from "../utils/formDate";
+
+//打开当前主题的图片列表
+const goToClassify = (item: getHomeWallClassItem) => {
+  uni.navigateTo({
+    url: `/pages/classifyList/classifyList?id=${item._id}&name=${item.name}`,
+  });
+};
+//更多
+const goToClassifyList = () => {
+  uni.switchTab({
+    url: "/pages/classify/classify",
+  });
+};
+
 defineProps({
   isMore: {
     type: Boolean,
     default: false,
+  },
+  classifyItem: {
+    type: Object as () => getHomeWallClassItem,
   },
 });
 </script>
