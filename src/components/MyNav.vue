@@ -7,7 +7,7 @@
       ></view>
       <view class="nav-title" :style="{ height: `${MenuHeight}px` }">
         <text class="title">{{ title }}</text>
-        <view class="search" v-if="isSearch">
+        <view class="search" v-if="isSearch" @click="goToSearch">
           <my-icon class="icon" type="search" :size="16" color="#333" />
           <text class="text">搜索</text>
         </view>
@@ -19,6 +19,11 @@
 
 <script setup lang="ts">
 import { statusBarHeight, MenuHeight, NavHeight } from "../utils/navStyle";
+const goToSearch=()=>{
+  uni.navigateTo({
+    url:'/pages/search/search'
+  })
+}
 defineProps({
   title: {
     type: String,

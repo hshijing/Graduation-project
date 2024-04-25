@@ -25,6 +25,7 @@ export interface NoticeItem {
   author: string;
 }
  type NoticeList = NoticeItem[];
+ 
 const noticeList: NoticeList = [
   {
     _id: Date.now(),
@@ -38,7 +39,7 @@ const noticeList: NoticeList = [
   {
     _id: Date.now(),
     view_count: "99+",
-    title: "小程序用途声明",
+    title: "小程序免责声明",
     content:
       "小程序所有图片仅限于学习交流，不允许商用,如用于商业用途，本站概不负责，谢谢！",
     create_time: Date.now(),

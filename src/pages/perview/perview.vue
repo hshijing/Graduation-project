@@ -47,8 +47,7 @@
         borderRadius="10rpx 10rpx 0 0"
         background-color="#fff"
       >
-        <!-- 用户信息 -->
-        <view class="userInfo">
+        <view class="userInfo" v-if="currImgInfo">
           <view class="header">
             <view><!-- 占位 --></view>
             <view class="title">壁纸信息</view>
@@ -59,7 +58,7 @@
           <scroll-view class="box" scroll-y>
             <view class="content">
               <view class="item">
-                <text class="label">壁纸ID:</text>
+                <text class="label" v-if="currImgInfo._id">壁纸ID:</text>
                 <text class="value" selectable>{{ currImgInfo._id }}</text>
               </view>
               <!-- <view class="item">
@@ -102,6 +101,7 @@
                 邮箱:<text :selectable="true">2097294126@qq.com</text>
               </view>
             </view>
+            <view class="safe"></view>
           </scroll-view>
         </view>
       </uni-popup>
@@ -117,14 +117,14 @@
       >
         <view class="star">
           <view class="header">
-            <view class="title">壁纸评分</view>
+            <view class="title">{{ isStar ? "您已评分" : "壁纸评分" }}</view>
             <view class="close" @click="closePopup">
               <my-icon type="closeempty" :size="18" color="#666" />
             </view>
           </view>
           <view class="content">
             <uni-rate
-              :readonly="false"
+              :readonly="isStar"
               allowHalf
               v-model="userStar"
               size="28"
@@ -152,8 +152,8 @@
 import { ref, computed } from "vue";
 import { statusBarHeight } from "../../utils/navStyle";
 import { type ClassifyItem } from "../classifyList/index";
-import { onLoad } from "@dcloudio/uni-app";
-import { isH5 } from "../../utils/isH5";
+import { onLoad, onShareAppMessage } from "@dcloudio/uni-app";
+import { SetUserScore, biZhiInfo } from "./index";
 const mask = ref(true);
 //预览图片列表数据
 const perviewImg = ref([]);
@@ -165,37 +165,28 @@ const currImgInfo = computed<ClassifyItem>(() => {
 });
 //优化  存储当前图片的左1，当前，右1,每次只拿三张图片
 const readImgIndex = ref([]);
+//是否已对壁纸评分
+const isStar = ref(false);
 //壁纸弹窗实例
 const popupBz = ref();
 const popupStar = ref();
-const userStar = ref(5);
-//主页预览只能有一个图片
-const indexImg = ref([]);
-onLoad((res) => {
-  //h5环境uni.$on延迟触发，弄了很久还是牺牲用户体验
-  if (res.isHome && isH5()) {
-    uni.$on("RandomImgList", (data) => {
-      indexImg.value.push(data);
-      getPerviewImg(indexImg.value);
-    });
-  } else if (res.isHome) {
-    uni.$on("RandomImgList", (data) => {
-      console.log(data);
-      indexImg.value.push(data);
-      getPerviewImg(indexImg.value);
-    });
-   
-  } else {
-     //分类的图片列表预览
-    const data: ClassifyItem[] = uni.getStorageSync("dataImgList");
-    getPerviewImg(data);
-    //确定当前显示的图片下标
-    currIndexImg.value = data.findIndex(
-      (item: ClassifyItem) => item._id === res.index
-    );
-    //读取图片列表
-    readImgIndexFn();
+const userStar = ref<string>("");
+
+onLoad(async (res) => {
+  if (res.type === "share") {
+    //主页分享预览
+    const result = await biZhiInfo(res.id);
+    getPerviewImg(result.data.data);
+    return;
   }
+  const data: ClassifyItem[] = uni.getStorageSync("dataImgList");
+  currIndexImg.value = data.findIndex((item: ClassifyItem) => {
+    return item._id === res.id;
+  });
+  //读取图片列表
+  getPerviewImg(data);
+  //确定当前显示的图片下标
+  readImgIndexFn();
 });
 //进来显示预览图片
 const getPerviewImg = (options: ClassifyItem[]) => {
@@ -230,14 +221,23 @@ const swiperChange = (e) => {
 };
 
 //返回上一页
-const back = () => uni.navigateBack({ delta: 0 });
+const back = () => {
+  uni.navigateBack({
+    delta: 0,
+    fail: (err) => {
+      uni.reLaunch({
+        url: "/pages/index/index",
+      });
+    },
+  });
+};
 //图片点击隐藏遮罩层
 const maskChange = () => (mask.value = !mask.value);
-//点击图标打开弹窗
+//点击图标打开信息弹窗
 const openPopup = () => {
   popupBz.value.open();
 };
-//弹窗关闭
+//信息弹窗关闭
 const closePopup = () => {
   popupBz.value.close();
   popupStar.value.close();
@@ -245,14 +245,128 @@ const closePopup = () => {
 
 //评分弹窗
 const openStar = () => {
+  //判断是否已评分
+  if (currImgInfo.value.userScore) {
+    isStar.value = true;
+    userStar.value = currImgInfo.value.userScore;
+  } else {
+    isStar.value = false;
+    userStar.value = "0";
+  }
   popupStar.value.open();
 };
 //确定评分
-const starSend = () => {
+const starSend = async () => {
+  if (!isStar.value) {
+    const params = {
+      classid: currImgInfo.value.classid,
+      wallId: currImgInfo.value._id,
+      userScore: userStar.value,
+    };
+    uni.showLoading({
+      title: "加载中...",
+    });
+    //评分接口
+    const res = await SetUserScore(params);
+    uni.hideLoading();
+    if (res.data.errCode === 0) {
+      uni.showToast({
+        title: "评分成功",
+        icon: "none",
+      });
+      perviewImg.value[currIndexImg.value].userScore = userStar.value;
+      //更新缓存
+      uni.setStorageSync("dataImgList", perviewImg.value);
+    }
+  }
   popupStar.value.close();
 };
 //下载弹窗
-const openDownload = () => {};
+const openDownload = async () => {
+  // #ifdef H5
+  showLongPressModal();
+  // #endif
+
+  // #ifndef H5
+  try {
+    uni.showLoading({
+      title: "下载中...",
+      mask: true,
+    });
+    await downloadAndSaveImage();
+    uni.hideLoading();
+    uni.showToast({
+      title: "下载成功",
+      icon: "none",
+    });
+  } catch (error) {
+    handleDownloadError(error);
+  }
+  // #endif
+};
+
+//H5环境 显示长按保存提示框
+function showLongPressModal() {
+  uni.showModal({
+    content: "长按保存图片",
+    showCancel: false,
+  });
+}
+
+// 下载并保存图片
+async function downloadAndSaveImage() {
+  const res: any = await uni.getImageInfo({ src: currImgInfo.value.picurl });
+  await uni.saveImageToPhotosAlbum({ filePath: res.path });
+}
+
+// 处理下载错误
+function handleDownloadError(error) {
+  // 用户拒绝授权
+  if (error.errMsg === "saveImageToPhotosAlbum:fail auth deny") {
+    uni.hideLoading();
+    // 提示用户授权
+    promptForAuthorization();
+  } else {
+    // 其他错误处理
+    uni.showModal({
+      content: "下载图片失败，请重试",
+      showCancel: false,
+    });
+    uni.hideLoading();
+  }
+}
+
+// 提示用户授权
+function promptForAuthorization() {
+  uni.showModal({
+    content: "需要授权保存相册",
+    title: "提示",
+    success: (success) => {
+      if (success.confirm) {
+        openSettings();
+      }
+    },
+  });
+}
+
+// 打开设置
+function openSettings() {
+  uni.openSetting({
+    success: (setting) => {
+      if (setting.authSetting["scope.writePhotosAlbum"]) {
+        openDownload(); // 用户同意后，重新尝试下载
+      }
+    },
+  });
+}
+
+//分享给朋友
+onShareAppMessage(() => {
+  return {
+    title: `甄选壁纸—精美图片`,
+    path: `pages/perview/perview?id=${currImgInfo.value._id}&type=share`,
+  };
+});
 </script>
 
 <style lang="scss">

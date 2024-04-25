@@ -18,7 +18,7 @@
     >
       <image
         class="themeImg"
-        src="../static/image/banner1.jpg"
+        src="../static/g4925.jpg"
         mode="scaleToFill"
       />
       <view class="mask">

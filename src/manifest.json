@@ -50,9 +50,16 @@
     "quickapp" : {},
     /* 小程序特有相关 */
     "mp-weixin" : {
-        "appid" : "",
+        "appid" : "wxe1c7a0d0fbbadfe5",
+         "projectname":"甄选壁纸",
         "setting" : {
-            "urlCheck" : false
+            "urlCheck" : false,
+            "es6": true,
+            "enhance":true,
+            "minified":true,
+            "minifyWXSS":true,
+            "minifyWXML":true,
+            
         },
         "usingComponents" : true
     },

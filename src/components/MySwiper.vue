@@ -50,7 +50,6 @@
 <script setup lang="ts">
 import { type getHomeBarImgItem } from "../pages/index/index";
 import { type NoticeItem } from "./MyAnnouncement.vue";
-import { isH5 } from "../utils/isH5";
 const emit = defineEmits(["swiperItemClick", "swiperChange"]);
 const jump = (item) => {
   emit("swiperItemClick", item);
@@ -60,14 +59,16 @@ const goToDetail = (item: NoticeItem) => {
   uni.navigateTo({
     url: "/pages/AnnouncementDetails/detail",
     success: () => {
-      if (isH5()) {
-        //h5第一次进入无法传递数据 因为emit要等on初始化后才触发
-        uni.$on("test", function () {
-          uni.$emit("NoticeItem", item);
-        });
-      } else {
+      // #ifdef H5
+      uni.$on("test", function () {
         uni.$emit("NoticeItem", item);
-      }
+      });
+      // #endif
+
+      // #ifndef H5
+      uni.$emit("NoticeItem", item);
+
+      // #endif
     },
   });
 };

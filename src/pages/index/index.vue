@@ -33,7 +33,7 @@
             v-for="item in RandomImgList"
             :key="item._id"
             @click="imgClickToPreview(item)"
-          > 
+          >
             <image :src="item.smallPicurl" mode="scaleToFill" />
           </view>
         </scroll-view>
@@ -63,37 +63,35 @@
 import MySwiper from "@/components/MySwiper.vue";
 import MyAnnouncement from "@/components/MyAnnouncement.vue";
 import MyTheme from "@/components/MyTheme.vue";
-import { isH5 } from "../../utils/isH5";
+import {
+  onLoad,
+  onShareAppMessage,
+  onPullDownRefresh,
+} from "@dcloudio/uni-app";
 import { ref } from "vue";
 import {
   getHomeBarImg,
   getHomeRandomImg,
   getHomeWallClass,
   type getHomeBarImgItem,
-  getHomeRandomImgItem,
+  ClassifyItem,
   getHomeWallClassItem,
 } from "./index";
+import { onUnload } from "@dcloudio/uni-app";
 //轮播图
 const swiperImgList = ref([] as getHomeBarImgItem[]);
+const RandomImgPageNum = ref(1);
+const RandomImgTotal = ref(0);
 //每日推荐图
-const RandomImgList = ref([] as getHomeRandomImgItem[]);
+const RandomImgList = ref([] as ClassifyItem[]);
 //分类
 const classifyList = ref([] as getHomeWallClassItem[]);
 //点击图片跳转预览
-const imgClickToPreview = (row: getHomeRandomImgItem) => {
+const imgClickToPreview = (row: ClassifyItem) => {
   uni.navigateTo({
-    url: `/pages/perview/perview?isHome=yes`,
-    success: () => {
-      //h5环境uni.$emit需要等$on初始化完毕,牺牲用户体验
-      if (isH5()) {
-        setTimeout(() => {
-          uni.$emit("RandomImgList", row);
-        }, 500);
-      } else {
-        uni.$emit("RandomImgList", row);
-      }
-    },
+    url: `/pages/perview/perview?id=${row._id}`,
   });
+  uni.setStorageSync("dataImgList", RandomImgList.value);
 };
 //获取轮播图
 const getBarImg = async () => {
@@ -102,7 +100,12 @@ const getBarImg = async () => {
 };
 //获取每日推荐图
 const getRandomImg = async () => {
-  const res = await getHomeRandomImg();
+  const res = await getHomeRandomImg({
+    classid: "6524ace7213929cbcee72e4d",
+    pageNum: RandomImgPageNum.value,
+    pageSize: 9,
+  });
+  RandomImgTotal.value = res.data.total;
   RandomImgList.value = res.data.data;
 };
 //获取分类
@@ -110,10 +113,39 @@ const getClassify = async () => {
   const res = await getHomeWallClass({ select: true });
   classifyList.value = res.data.data;
 };
+//更新每日推荐图片
+const updateRandomImg = () => {
+  RandomImgPageNum.value++;
+  if (RandomImgPageNum.value > Math.ceil(RandomImgTotal.value / 9)) {
+    RandomImgPageNum.value = 1;
+  }
+  getRandomImg();
+};
+const timeId = setInterval(() => {
+  updateRandomImg();
+}, 1000 * 60 * 60 * 24);
+onLoad(() => {
+  getBarImg();
+  getRandomImg();
+  getClassify();
+});
+onUnload(() => {
+  clearInterval(timeId);
+});
 
-getBarImg();
-getRandomImg();
-getClassify();
+//分享给朋友
+onShareAppMessage(() => {
+  return {
+    title: "甄选壁纸",
+    path: "/pages/index/index",
+  };
+});
+onPullDownRefresh(() => {
+  getBarImg();
+  getRandomImg();
+  getClassify();
+  uni.stopPullDownRefresh();
+});
 </script>
 <style lang="scss">
 .homeLayout {

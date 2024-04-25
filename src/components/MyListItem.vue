@@ -7,7 +7,7 @@
         :color="iconColor"
         :size="iconSize"
       />
-      <text class="title">{{ title }}</text>
+      <slot name="title"></slot>
     </view>
     <view class="right">
       <text v-if="isRight" class="count">{{ count }}</text>
@@ -61,11 +61,7 @@ const click = (row: string) => {
   .left {
     display: flex;
     align-items: center;
-    .title {
-      font-size: 28rpx;
-      color: #666;
-      margin-left: 10rpx;
-    }
+    
   }
   .right {
     font-size: 28rpx;

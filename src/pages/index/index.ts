@@ -7,13 +7,14 @@ export function getHomeBarImg(): Promise<getHomeBarImgRes> {
   });
 }
 //获取每日推荐图片
-export function getHomeRandomImg(): Promise<getHomeRandomImgRes> {
-  return Request<getHomeRandomImgRes>({
-    url: "randomWall",
+export function getHomeRandomImg(data:Data): Promise<getClassifyListRes> {
+  return Request<getClassifyListRes>({
+    url: "wallList",
     method: "GET",
+    data
   });
 }
-//首页壁纸分类
+//首页壁纸分类 
 export function getHomeWallClass(
   options: WallClassBody
 ): Promise<getHomeWallClassRes> {
@@ -31,6 +32,33 @@ interface Res {
   statusCode: number;
   header: any;
 }
+interface Data {
+  classid: string;
+  pageNum: number;
+  pageSize: number;
+}
+interface getClassifyListRes extends Res {
+  data: {
+    author: string;
+    errCode: number;
+    errMsg: string;
+    timeCost?: number;
+    data: ClassifyItem[];
+    total: number;
+  };
+}
+export interface ClassifyItem {
+  description: string;
+  classid: string;
+  smallPicurl: string;
+  tabs: [string];
+  _id: string;
+  score: string;
+  nickname: string;
+  userScore?:string
+  picurl?:string
+}
+
 interface getHomeBarImgRes extends Res {
   data: {
     author: string;

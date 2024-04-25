@@ -1,42 +1,64 @@
-export interface Icons{
-  icon:string,
-  title:string,
-  isRight:boolean,
-  count?:number 
+import { Request } from "../../utils/requst";
+
+// 获取用户信息
+export const ReqGetUserInfo = (): Promise<getUserInfoRes> => {
+  return Request<getUserInfoRes>({
+    url: "userInfo",
+    method: "GET",
+  });
+};
+
+
+
+interface Res {
+  cookies: any;
+  errMsg: string;
+  statusCode: number;
+  header: any;
 }
-type IconList = Icons[]
+interface getUserInfoRes extends Res {
+  data: {
+    author: string;
+    errCode: number;
+    errMsg: string;
+    timeCost?: number;
+    data: UserInfo;
+    total: number;
+  };
+}
+export interface UserInfo {
+  IP: string;
+  address: {
+    country: string;
+    province: string;
+    city: string;
+  };
+  downloadSize: number;
+  scoreSize: number;
+}
 
 
-export const iconsTop:IconList=[
-  {
-    icon:'download-filled',
-    title:'我的下载',
-    isRight:true,
-    count:2
-  },
-  {
-    icon:'star-filled',
-    title:'我的评分',
-    isRight:true,
-    count:1
-  },
-  {
-    icon:'chatboxes-filled',
-    title:'联系我们',
-    isRight:false,
-  },
-]
+export interface Icons {
+  icon: string;
+  title: string;
+  isRight: boolean;
+  count?: number;
+  type?: "score" | "download";
+}
+export type IconList = Icons[];
+
+
 //底部
 
-export const iconsBottom:IconList=[
+export const iconsBottom: IconList = [
   {
-    icon:'notification-filled',
-    title:'订阅更新',
-    isRight:false,
+    icon: "chatboxes-filled",
+    title: "联系我们",
+    isRight: false,
   },
   {
-    icon:'flag-filled',
-    title:'常见问题',
-    isRight:false,
-  }
-]
+    icon: "flag-filled",
+    title: "常见问题",
+    isRight: false,
+  },
+];

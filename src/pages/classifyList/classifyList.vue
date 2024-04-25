@@ -24,53 +24,90 @@
 </template>
 
 <script lang="ts" setup>
-import { onLoad, onReachBottom } from "@dcloudio/uni-app";
-import { getClassifyList, type ClassifyItem } from "./index";
+import {
+  onLoad,
+  onUnload,
+  onReachBottom,
+  onShareAppMessage,
+} from "@dcloudio/uni-app";
+import {
+  getClassifyList,
+  getUserScore,
+  type ClassifyItem,
+} from "./index";
 import { ref } from "vue";
+//数据
 const params = ref({
   classid: "",
   pageNum: 1,
   pageSize: 12,
+  type: "",
 });
 //优化触底网络请求
 const noData = ref(false);
 const dataImgList = ref([] as ClassifyItem[]);
 const imgTotal = ref(0);
+const currIndexName = ref("");
 //监听页面加载
 onLoad((res) => {
-  params.value.classid = res.id;
+  currIndexName.value = res.name;
+  if (res.type) {
+    imgTotal.value = parseInt(res.total)
+    params.value.type = res.type;
+  }
+  if (res.id) {
+    params.value.classid = res.id;
+  }
   getData(params.value);
   //设置标题
   uni.setNavigationBarTitle({
-    title: res.name,
+    title: currIndexName.value,
   });
 });
 //上拉加载 类似于监听滚动条到底刷新拿新图片
 onReachBottom(() => {
   //判断是否还有数据
   if (noData.value) return;
-
   params.value.pageNum++;
   getData(params.value);
 });
 
+onUnload(() => {
+  uni.removeStorageSync("dataImgList");
+});
+
+
 //获取分类图片
 const getData = async (params) => {
-  const result = await getClassifyList(params);
+  let result;
+  if (params.type) {
+    result = await getUserScore(params);
+  } else {
+    result = await getClassifyList(params);
+    imgTotal.value = result.data.total;
+  }
   dataImgList.value = [...dataImgList.value, ...result.data.data];
-  imgTotal.value = result.data.total;
+
   uni.setStorageSync("dataImgList", dataImgList.value);
   //判断是否还有数据
   if (dataImgList.value.length >= imgTotal.value) {
     noData.value = true;
   }
 };
+
 //预览
 const goToPerview = (item: ClassifyItem) => {
   uni.navigateTo({
-    url: `/pages/perview/perview?index=${item._id}`,
+    url: `/pages/perview/perview?id=${item._id}`,
   });
 };
+//分享给朋友
+onShareAppMessage(() => {
+  return {
+    title: `精选分类,${currIndexName.value}`,
+    path: `/pages/classifyList/classifyList?id=${params.value.classid}&name=${currIndexName.value}`,
+  };
+});
 </script>
 
 <style lang="scss" scoped>

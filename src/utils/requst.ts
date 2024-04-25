@@ -43,7 +43,7 @@ export function Request<T>(options: Request): Promise<T> {
           resolve(res);
         } else if (res.data.errCode === 400) {
           uni.showToast({
-            title: "小程序错误，请重新打开小程序",
+            title: "网络错误",
             icon: "none",
           });
           reject(res.data);
